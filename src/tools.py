@@ -42,10 +42,25 @@ TOOLS_SCHEMA = [
         "description": "Đặt lịch hẹn tư vấn học vụ với Cố vấn học tập VinUni.",
         "parameters": {
             "type": "object",
-            "properties": {
-                # TODO 1.2: Khai báo các thuộc tính tham số cho Tool tại đây...
+             "properties": {
+                "student_id": {
+                    "type": "string",
+                    "description": "Mã sinh viên cần đặt lịch (ví dụ: 'SV2026001')"
+                },
+                "datetime_str": {
+                    "type": "string",
+                    "description": "Thời gian hẹn (ví dụ: '14:00 15/09/2026')"
+                },
+                "advisor_name": {
+                    "type": "string",
+                    "description": "Tên Cố vấn học tập cần đặt lịch"
+                }
             },
-            "required": [] # TODO 1.2: Khai báo danh sách các trường bắt buộc tại đây...
+            "required": [
+                "student_id",
+                "datetime_str",
+                "advisor_name"
+            ] 
         }
     }
 ]
@@ -116,3 +131,29 @@ def dispatch_tool_call(tool_name: str, arguments: Dict[str, Any]) -> str:
         except Exception as e:
             return json.dumps({"status": "EXECUTION_ERROR", "error": str(e)}, ensure_ascii=False)
     return json.dumps({"status": "UNKNOWN_TOOL", "error": f"Tool '{tool_name}' không tồn tại!"}, ensure_ascii=False)
+
+if __name__ == "__main__":
+    print(
+        f"✅ [TOOLS CHECK]: Đã đăng ký thành công "
+        f"{len(TOOLS_SCHEMA)} Native Tools trong TOOLS_SCHEMA!"
+    )
+
+    result = dispatch_tool_call(
+        "academic_query",
+        {"student_id": "SV2026001"}
+    )
+
+    result_data = json.loads(result)
+
+    if result_data.get("status") == "SUCCESS":
+        student_name = result_data["data"]["full_name"]
+
+        print(
+            f"🧪 Kết quả gọi thử academic_query: "
+            f"Status SUCCESS (Sinh viên {student_name})"
+        )
+    else:
+        print(
+            f"🧪 Kết quả gọi thử academic_query: "
+            f"Status {result_data.get('status')}"
+        )

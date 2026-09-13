@@ -10,11 +10,11 @@
 
 | Tiêu chí Đánh giá | Mức độ (1 - 5) | Giải trình chi tiết lý do chọn điểm |
 | :--- | :---: | :--- |
-| **1. Multi-step Reasoning** | / 5 | Bài toán có yêu cầu chia nhỏ nhiều bước suy luận nối tiếp nhau không? |
-| **2. Tool Interaction** | / 5 | Hệ thống có cần kết nối với MCP Server / Cơ sở dữ liệu bên ngoài không? |
-| **3. Dynamic Decision** | / 5 | Bước tiếp theo có phụ thuộc vào kết quả quan sát bước trước không? |
-| **4. Long Horizon Goal** | / 5 | Hệ thống có phải giữ mục tiêu xuyên suốt qua nhiều lượt xử lý không? |
-| **TỔNG ĐIỂM AGENTIC FIT** | **/ 20** | *Nếu tổng điểm > 12/20: Bài toán rất phù hợp triển khai Agentic System.* |
+| **1. Multi-step Reasoning** | 3 / 5 | Hệ thống có thể cần thực hiện nhiều bước: xác định nhu cầu → truy vấn dữ liệu GPA/lịch thi → tổng hợp thông tin → nếu cần thì tìm slot trống của Cố vấn → tạo lịch tư vấn. Tuy nhiên, các tác vụ như tra cứu GPA hoặc lịch thi riêng lẻ khá đơn giản. |
+| **2. Tool Interaction** | 5 / 5 | Hệ thống cần kết nối với nhiều nguồn như hệ thống quản lý thông tin sinh viên, hệ thống lịch thi, database học vụ, calendar/booking system và có thể sử dụng MCP/API để thực hiện các thao tác tra cứu và đặt lịch. |
+| **3. Dynamic Decision** | 4 / 5 | Bước tiếp theo có thể phụ thuộc vào kết quả trước đó. Ví dụ: nếu sinh viên hỏi "Đặt giúp tôi lịch gặp cố vấn sớm nhất" → Tìm lịch trống của cố vấn -> Khi có lịch trống phải kiểm tra lại lịch sinh viên -> nếu phù hợp thì đặt lịch, nếu không phải tiếp tục kiếm lịch khác. |
+| **4. Long Horizon Goal** | 3 / 5 | Một phiên làm việc có thể bao gồm nhiều thao tác liên tiếp, đặc biệt khi mục tiêu là "giúp tôi sắp xếp việc học và đặt lịch với cố vấn". Tuy nhiên, đa số tác vụ vẫn hoàn thành trong vài bước, chưa cần duy trì mục tiêu qua một chuỗi dài state. |
+| **TỔNG ĐIỂM AGENTIC FIT** | ** 15 / 20** | *Nếu tổng điểm > 12/20: Bài toán rất phù hợp triển khai Agentic System.* |
 
 ---
 
@@ -28,20 +28,53 @@ Dán 1 đoạn trích xuất log tiêu biểu từ file `docs/trace_waterfall.js
 [
   {
     "step": 1,
+    "query": "Tôi có mã sinh viên SV2026002 muốn gặp Academic Advisor để được tư vấn về việc đăng ký môn học kỳ tới. Hãy tìm Advisor phụ trách tôi và đặt cho tôi một lịch hẹn vào 20/9/2026 vào lúc 14:00.",
     "action_type": "TOOL_EXECUTION",
     "tool_name": "academic_query",
     "arguments": {
-      "student_id": "SV2026001"
+      "student_id": "SV2026002"
     },
     "observation": {
       "status": "SUCCESS",
-      "student_id": "SV2026001",
+      "student_id": "SV2026002",
       "data": {
-        "full_name": "Nguyễn Văn An",
-        "gpa": 3.85
+        "full_name": "Trần Thị Bình",
+        "class": "AI-K4",
+        "gpa": 3.6,
+        "email": "binh.tt@vinuni.edu.vn",
+        "status": "Đang học",
+        "advisor": "TS. Lê Thị B"
       }
     },
-    "latency_ms": 120.5
+    "latency_ms": 3315.61
+  },
+  {
+    "step": 3,
+    "query": "Tôi có mã sinh viên SV2026002 muốn gặp Academic Advisor để được tư vấn về việc đăng ký môn học kỳ tới. Hãy tìm Advisor phụ trách tôi và đặt cho tôi một lịch hẹn vào 20/9/2026 vào lúc 14:00.\n\nObservation từ Tool academic_query:\n{\"status\": \"SUCCESS\", \"student_id\": \"SV2026002\", \"data\": {\"full_name\": \"Trần Thị Bình\", \"class\": \"AI-K4\", \"gpa\": 3.6, \"email\": \"binh.tt@vinuni.edu.vn\", \"status\": \"Đang học\", \"advisor\": \"TS. Lê Thị B\"}}\n\nHãy tiếp tục xử lý yêu cầu dựa trên Observation.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "schedule_appointment",
+    "arguments": {
+      "student_id": "SV2026002",
+      "advisor_name": "TS. Lê Thị B",
+      "datetime_str": "14:00 20/09/2026"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "booking_id": "BK-SV2026002-99",
+      "student_id": "SV2026002",
+      "datetime": "14:00 20/09/2026",
+      "advisor": "TS. Lê Thị B",
+      "message": "Đặt lịch thành công cho sinh viên SV2026002 với TS. Lê Thị B vào lúc 14:00 20/09/2026."
+    },
+    "latency_ms": 2854.03
+  },
+  {
+    "step": 5,
+    "query": "Tôi có mã sinh viên SV2026002 muốn gặp Academic Advisor để được tư vấn về việc đăng ký môn học kỳ tới. Hãy tìm Advisor phụ trách tôi và đặt cho tôi một lịch hẹn vào 20/9/2026 vào lúc 14:00.\n\nObservation từ Tool academic_query:\n{\"status\": \"SUCCESS\", \"student_id\": \"SV2026002\", \"data\": {\"full_name\": \"Trần Thị Bình\", \"class\": \"AI-K4\", \"gpa\": 3.6, \"email\": \"binh.tt@vinuni.edu.vn\", \"status\": \"Đang học\", \"advisor\": \"TS. Lê Thị B\"}}\n\nHãy tiếp tục xử lý yêu cầu dựa trên Observation.\n\nObservation từ Tool schedule_appointment:\n{\"status\": \"SUCCESS\", \"booking_id\": \"BK-SV2026002-99\", \"student_id\": \"SV2026002\", \"datetime\": \"14:00 20/09/2026\", \"advisor\": \"TS. Lê Thị B\", \"message\": \"Đặt lịch thành công cho sinh viên SV2026002 với TS. Lê Thị B vào lúc 14:00 20/09/2026.\"}\n\nHãy tiếp tục xử lý yêu cầu dựa trên Observation.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Chào bạn **Trần Thị Bình** (Mã sinh viên: **SV2026002**),\n\nYêu cầu đặt lịch tư vấn học vụ của bạn đã hoàn tất thành công. Dưới đây là thông tin chi tiết về lịch hẹn:\n\n* **Cố vấn học tập (Academic Advisor):** TS. Lê Thị B\n* **Thời gian:** 14:00, ngày 20/09/2026\n* **Mã xác nhận đặt lịch:** BK-SV2026002-99\n* **Nội dung tư vấn:** Tư vấn đăng ký môn học cho học kỳ tới\n\nBạn vui lòng sắp xếp thời gian có mặt đúng giờ. Nếu có bất kỳ thay đổi nào hoặc cần hỗ trợ thêm, hãy báo lại cho Trợ lý Học vụ nhé. Chúc bạn một học kỳ học tập hiệu quả!",
+    "latency_ms": 3440.34
   }
 ]
 ```
@@ -51,9 +84,9 @@ Dán 1 đoạn trích xuất log tiêu biểu từ file `docs/trace_waterfall.js
 ## 3. TỔNG KẾT KẾT QUẢ NGHIỆM THU & NỘP BÀI
 
 - [ ] Đã điền API Key thật trong `.env` và xác nhận Agent chạy mượt mà trên LLM API thật (Gemini/OpenAI).
-- **Tổng số Test Cases đã chạy thành công:** ___ / 5 test cases.
-- **Số lượt gọi Tool qua MCP Server chính xác:** ___ lượt.
-- **Kết quả đẩy Repo nộp bài:** [ ] Đã Commit và Push mã nguồn thành công lên GitHub cá nhân.
+- **Tổng số Test Cases đã chạy thành công:** 5 / 5 test cases.
+- **Số lượt gọi Tool qua MCP Server chính xác:** 4 lượt.
+- **Kết quả đẩy Repo nộp bài:** [x] Đã Commit và Push mã nguồn thành công lên GitHub cá nhân.
 
 ---
 
